@@ -1,0 +1,15 @@
+body {
+	background-color: #F3F3F3;
+}
+
+/* App */
+	#app-container {
+		padding: 40px;
+	}
+
+/* Table */
+	table {
+		margin: 20px 0;
+		border: 2px solid #e0e0e0;
+		background-color: white;
+	}
