@@ -17,7 +17,7 @@ function SetupComplexTableListeners() {
 
 					let cell_filter_type = cell.getAttribute('data-filter-match-type');
 
-					if (cell_filter_type) {
+					if (cell_filter_type !== null) {
 						table_filtered_match_type[cell.cellIndex] = cell_filter_type;
 					}
 					else {
@@ -96,13 +96,13 @@ function EvaluateComplexTableResults(table) {
 			if (table_filtered_cells.includes(cell.cellIndex.toString())) {
 				switch (table_filtered_match_type[cell.cellIndex]) {
 					case 'exact':
-						if (cell.innerHTML.toLowerCase() === table_filtered_values[cell.cellIndex]) {
+						if (cell.innerHTML.trim().toLowerCase() === table_filtered_values[cell.cellIndex]) {
 							row.setAttribute('data-table-complex-match-count', parseInt(row.getAttribute('data-table-complex-match-count')) + 1);
 						}
 						break;
 
 					case 'contains':
-						if (table_filtered_values[cell.cellIndex] !== '' && cell.innerHTML.toLowerCase().indexOf(table_filtered_values[cell.cellIndex]) !== -1) {
+						if (table_filtered_values[cell.cellIndex] !== '' && cell.innerHTML.trim().toLowerCase().indexOf(table_filtered_values[cell.cellIndex]) !== -1) {
 							row.setAttribute('data-table-complex-match-count', parseInt(row.getAttribute('data-table-complex-match-count')) + 1);
 						}
 						break;
