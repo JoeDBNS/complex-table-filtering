@@ -9,7 +9,8 @@ function SetupComplexTableListeners() {
 		let table_filtered_values = [];
 		let table_filtered_match_type = [];
 
-		Array.from(table.querySelectorAll('thead tr')).forEach(function(row) {
+		// thead tr row with data-filter-input definitions needs to be first-child based on query below
+		Array.from(table.querySelectorAll('thead tr:first-child')).forEach(function(row) {
 			Array.from(row.cells).forEach(function(cell) {
 				if (cell.hasAttribute('data-filter-input')) {
 					table_filtered_cells.push(cell.cellIndex);
