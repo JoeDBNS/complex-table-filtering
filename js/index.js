@@ -1,9 +1,9 @@
 // OnLoad Run
 window.addEventListener('load', function() {
-	SetupComplexTableListeners();
+	SetupComplexTables();
 });
 
-function SetupComplexTableListeners() {
+function SetupComplexTables() {
 	Array.from(document.querySelectorAll('[data-table-complex]')).forEach(function(table) {
 		let table_filtered_cells = [];
 		let table_filtered_values = [];
@@ -24,23 +24,7 @@ function SetupComplexTableListeners() {
 						table_filtered_match_type[cell.cellIndex] = 'contains';
 					}
 
-					document.getElementById(cell.getAttribute('data-filter-input')).addEventListener('change', function() {
-						let update_table_filtered_values = table.getAttribute('data-table-complex-filter-values').split(',');
-
-						this.value = this.value.trim();
-
-						if (this.value) {
-							update_table_filtered_values[cell.cellIndex] = this.value.toLowerCase();
-						}
-						else {
-							update_table_filtered_values[cell.cellIndex] = undefined;
-						}
-
-						table.setAttribute('data-table-complex-filter-values', update_table_filtered_values);
-
-						EvaluateComplexTableResults(table);
-						DisplayComplexTableResults(table);
-					});
+					SetupComplexTableFilterListener(table, cell);
 				}
 				else {
 					table_filtered_match_type[cell.cellIndex] = undefined;
@@ -53,6 +37,36 @@ function SetupComplexTableListeners() {
 		table.setAttribute('data-table-complex-filter-values', table_filtered_values);
 		table.setAttribute('data-table-complex-filtered-cells', table_filtered_cells);
 		table.setAttribute('data-table-complex-match-types', table_filtered_match_type);
+	});
+}
+
+function SetupComplexTableFilterListener(table, cell) {
+	var delay = (function(){
+		var timer = 0;
+		return function(callback, ms){
+			clearTimeout (timer);
+			timer = setTimeout(callback, ms);
+		};
+	})();
+
+	document.getElementById(cell.getAttribute('data-filter-input')).addEventListener('keyup', function(event) {
+		delay(function() {
+			let update_table_filtered_values = table.getAttribute('data-table-complex-filter-values').split(',');
+
+			event.target.value = event.target.value.trim();
+
+			if (event.target.value) {
+				update_table_filtered_values[cell.cellIndex] = event.target.value.toLowerCase();
+			}
+			else {
+				update_table_filtered_values[cell.cellIndex] = undefined;
+			}
+
+			table.setAttribute('data-table-complex-filter-values', update_table_filtered_values);
+
+			EvaluateComplexTableResults(table);
+			DisplayComplexTableResults(table);
+		}, 300);
 	});
 }
 
