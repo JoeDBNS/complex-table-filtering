@@ -3,13 +3,12 @@ window.addEventListener('load', function() {
 	SetupComplexTableListeners();
 });
 
-
-let table_filtered_cells = [];
-let table_filtered_values = [];
-let table_filtered_match_type = [];
-
 function SetupComplexTableListeners() {
 	Array.from(document.querySelectorAll('[data-table-complex]')).forEach(function(table) {
+		let table_filtered_cells = [];
+		let table_filtered_values = [];
+		let table_filtered_match_type = [];
+
 		Array.from(table.querySelectorAll('thead tr')).forEach(function(row) {
 			Array.from(row.cells).forEach(function(cell) {
 				if (cell.hasAttribute('data-filter-input')) {
@@ -25,14 +24,18 @@ function SetupComplexTableListeners() {
 					}
 
 					document.getElementById(cell.getAttribute('data-filter-input')).addEventListener('change', function() {
+						let update_table_filtered_values = table.getAttribute('data-table-complex-filter-values').split(',');
+
 						this.value = this.value.trim();
 
 						if (this.value) {
-							table_filtered_values[cell.cellIndex] = this.value.toLowerCase();
+							update_table_filtered_values[cell.cellIndex] = this.value.toLowerCase();
 						}
 						else {
-							table_filtered_values[cell.cellIndex] = undefined;
+							update_table_filtered_values[cell.cellIndex] = undefined;
 						}
+
+						table.setAttribute('data-table-complex-filter-values', update_table_filtered_values);
 
 						EvaluateComplexTableResults(table);
 						DisplayComplexTableResults(table);
@@ -46,17 +49,19 @@ function SetupComplexTableListeners() {
 			});
 		});
 
+		table.setAttribute('data-table-complex-filter-values', table_filtered_values);
 		table.setAttribute('data-table-complex-filtered-cells', table_filtered_cells);
-
-		ResetComplexTableResults(table);
+		table.setAttribute('data-table-complex-match-types', table_filtered_match_type);
 	});
 }
 
-function ComplexTableFilterCount() {
+function ComplexTableFilterCount(table) {
+	let table_filtered_values = table.getAttribute('data-table-complex-filter-values').split(',');
+
 	let filter_count = 0;
 
 	table_filtered_values.forEach(function(value) {
-		if (typeof value !== 'undefined' && value !== '') {
+		if (value !== '') {
 			filter_count += 1;
 		}
 	});
@@ -65,7 +70,7 @@ function ComplexTableFilterCount() {
 }
 
 function ResetComplexTableResults(table) {
-	if (ComplexTableFilterCount() > 0) {
+	if (ComplexTableFilterCount(table) > 0) {
 		Array.from(table.querySelectorAll('tbody tr')).forEach(function(row) {
 			row.setAttribute('data-table-complex-match-count', 0);
 		});
@@ -81,9 +86,13 @@ function ResetComplexTableResults(table) {
 function EvaluateComplexTableResults(table) {
 	ResetComplexTableResults(table);
 
+	let table_filtered_values = table.getAttribute('data-table-complex-filter-values').split(',');
+	let table_filtered_cells = table.getAttribute('data-table-complex-filtered-cells').split(',');
+	let table_filtered_match_type = table.getAttribute('data-table-complex-match-types').split(',');
+
 	Array.from(table.querySelectorAll('tbody tr')).forEach(function(row) {
 		Array.from(row.cells).forEach(function(cell) {
-			if (table_filtered_cells.includes(cell.cellIndex)) {
+			if (table_filtered_cells.includes(cell.cellIndex.toString())) {
 				switch (table_filtered_match_type[cell.cellIndex]) {
 					case 'exact':
 						if (cell.innerHTML.toLowerCase() === table_filtered_values[cell.cellIndex]) {
@@ -91,10 +100,13 @@ function EvaluateComplexTableResults(table) {
 						}
 						break;
 
-					default:
-						if (cell.innerHTML.toLowerCase().indexOf(table_filtered_values[cell.cellIndex]) !== -1) {
+					case 'contains':
+						if (table_filtered_values[cell.cellIndex] !== '' && cell.innerHTML.toLowerCase().indexOf(table_filtered_values[cell.cellIndex]) !== -1) {
 							row.setAttribute('data-table-complex-match-count', parseInt(row.getAttribute('data-table-complex-match-count')) + 1);
 						}
+						break;
+
+					default:
 						break;
 				}
 			}
@@ -103,8 +115,10 @@ function EvaluateComplexTableResults(table) {
 }
 
 function DisplayComplexTableResults(table) {
+	let table_filter_count = ComplexTableFilterCount(table);
+
 	Array.from(table.querySelectorAll('tbody tr')).forEach(function(row) {
-		if (row.getAttribute('data-table-complex-match-count') === ComplexTableFilterCount().toString() || ComplexTableFilterCount() === 0) {
+		if (row.getAttribute('data-table-complex-match-count') === table_filter_count.toString() || table_filter_count === 0) {
 			row.removeAttribute('hidden');
 		}
 		else {
